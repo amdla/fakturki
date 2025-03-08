@@ -1,0 +1,7 @@
+# Ignore Django migration files
+*/migrations/*.py
+!*/migrations/__init__.py
+*/migrations/__pycache__/
+.idea/
+*/__pycache__/*
+app/__pycache__/*
