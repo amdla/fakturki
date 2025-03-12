@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista Faktur{% endblock %}
+
+{% block content %}
+    <h1>Lista Faktur</h1>
+
+    <div class="mb-2">
+        <a href="{% url 'faktura_create' %}" class="btn btn-primary">Dodaj Fakturę</a>
+    </div>
+
+    <table id="fakturaTable" class="display">
+        <thead>
+        <tr>
+            <th>Numer</th>
+            <th>Sprzedawca</th>
+            <th>Nabywca</th>
+            <th>Data Wystawienia</th>
+            <th>Netto</th>
+            <th>Brutto</th>
+            <th>Akcje</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for faktura in faktury %}
+            <tr>
+                <td>{{ faktura.faktura_numer }}</td>
+                <td>{{ faktura.sprzedawca.klient_nazwa }}</td>
+                <td>{{ faktura.nabywca.klient_nazwa }}</td>
+                <td>{{ faktura.data_wyst }}</td>
+                <td>{{ faktura.netto }}</td>
+                <td>{{ faktura.brutto }}</td>
+                <td>
+                    <a href="{% url 'faktura_update' faktura.pk %}" class="btn btn-sm btn-warning">Edytuj</a>
+                    <a href="{% url 'faktura_delete' faktura.pk %}" class="btn btn-sm btn-danger">Usuń</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            $('#fakturaTable').DataTable();
+        });
+    </script>
+
+{% endblock %}

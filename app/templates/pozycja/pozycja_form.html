@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Formularz Pozycja{% endblock %}
+
+{% block content %}
+    <h1>Formularz Pozycja</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Zapisz</button>
+        <a href="{% url 'pozycja_list' %}" class="btn btn-secondary">Powrót</a>
+    </form>
+{% endblock %}

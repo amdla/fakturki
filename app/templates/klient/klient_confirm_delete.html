@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Usuń Klienta{% endblock %}
+
+{% block content %}
+    <h1>Potwierdź Usunięcie</h1>
+    <p>Czy na pewno chcesz usunąć klienta <strong>{{ klient.klient_nazwa }}</strong>?</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Tak, usuń</button>
+        <a href="{% url 'klient_list' %}" class="btn btn-secondary">Anuluj</a>
+    </form>
+{% endblock %}

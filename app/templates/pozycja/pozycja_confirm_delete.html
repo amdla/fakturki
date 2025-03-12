@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Usuń Pozycję{% endblock %}
+
+{% block content %}
+    <h1>Potwierdź Usunięcie</h1>
+    <p>Czy na pewno chcesz usunąć pozycję <strong>{{ pozycja.towar_opis }}</strong>?</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Tak, usuń</button>
+        <a href="{% url 'pozycja_list' %}" class="btn btn-secondary">Anuluj</a>
+    </form>
+{% endblock %}

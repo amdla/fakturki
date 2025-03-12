@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Biblioteka{% endblock %}</title>
+    <title>{% block title %}App{% endblock %}</title>
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -20,9 +20,22 @@
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+        <!-- Navigation Links -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
-
+                <!-- Klienci -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'klient_list' %}">Klienci</a>
+                </li>
+                <!-- Faktury -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'faktura_list' %}">Faktury</a>
+                </li>
+                <!-- Pozycje -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pozycja_list' %}">Pozycje</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -40,14 +53,28 @@
     </div>
 </footer>
 
-<!-- JavaScript Libraries -->
-<!-- Full jQuery version - IMPORTANT: Load this first -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<!-- DataTables JavaScript -->
-<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-<!-- Optional Bootstrap and Popper.js JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<!-- Bootstrap (optional) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Ensure DataTables runs only when the DOM is ready -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if ($.fn.DataTable) {
+            $('#klientTable').DataTable();
+            $('#fakturaTable').DataTable();
+            $('#pozycjaTable').DataTable();
+        } else {
+            console.error("DataTables library is not loaded.");
+        }
+    });
+</script>
+
 
 </body>
 </html>

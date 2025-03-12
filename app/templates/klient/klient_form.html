@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Formularz Klient{% endblock %}
+
+{% block content %}
+    <h1>Formularz Klient</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Zapisz</button>
+        <a href="{% url 'klient_list' %}" class="btn btn-secondary">Powrót</a>
+    </form>
+{% endblock %}

@@ -1,0 +1,32 @@
+// Run here: https://dbdiagram.io/d
+
+Table klienci {
+  klient_id integer [primary key]
+  klient_nazwa varchar
+  klient_nip varchar [unique]
+  klient_adres varchar
+}
+
+Table faktury {
+  faktura_id integer [primary key]
+  faktura_numer varchar [unique]
+  sprzedawca_id integer [ref: > klienci.klient_id]
+  nabywca_id integer [ref: > klienci.klient_id]
+  data_wyst date
+  netto decimal(10,2)
+  brutto decimal(10,2)
+}
+
+Table pozycje {
+  faktura_numer varchar [ref: > faktury.faktura_numer]
+  pozycja_id integer [primary key]
+  towar_opis varchar
+  pkwiu varchar
+  cena_jednostkowa decimal(10,2)
+  jednostka varchar
+  ilosc integer
+  netto decimal(10,2)
+  stawka integer
+  kwota_vat decimal(10,2)
+  brutto decimal(10,2)
+}

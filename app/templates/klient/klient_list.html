@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista Klientów{% endblock %}
+
+{% block content %}
+    <h1>Lista Klientów</h1>
+
+    <div class="mb-2">
+        <a href="{% url 'klient_create' %}" class="btn btn-primary">Dodaj Klienta</a>
+    </div>
+
+    <table id="klientTable" class="display">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nazwa</th>
+            <th>NIP</th>
+            <th>VAT Status</th>
+            <th>REGON</th>
+            <th>KRS</th>
+            <th>Adres</th>
+            <th>Data Rejestracji</th>
+            <th>Konta Bankowe</th>
+            <th>Akcje</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for klient in klienci %}
+            <tr>
+                <td>{{ klient.id }}</td>
+                <td>{{ klient.klient_nazwa }}</td>
+                <td>{{ klient.klient_nip }}</td>
+                <td>{{ klient.status_vat }}</td>
+                <td>{{ klient.klient_regon|default:"-" }}</td>
+                <td>{{ klient.klient_krs|default:"-" }}</td>
+                <td>{{ klient.klient_adres|default:"Brak danych" }}</td>
+                <td>{{ klient.data_rejestracji|default:"-" }}</td>
+                <td>
+                    {% if klient.konta_bankowe %}
+                        <ul>
+                            {% for konto in klient.konta_bankowe %}
+                                <li>{{ konto }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        Brak kont
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'klient_update' klient.pk %}" class="btn btn-sm btn-warning">Edytuj</a>
+                    <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-sm btn-danger">Usuń</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            $('#klientTable').DataTable();
+        });
+    </script>
+
+{% endblock %}

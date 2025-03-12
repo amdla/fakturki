@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista Pozycji{% endblock %}
+
+{% block content %}
+    <h1>Lista Pozycji</h1>
+
+    <div class="mb-2">
+        <a href="{% url 'pozycja_create' %}" class="btn btn-primary">Dodaj Pozycję</a>
+    </div>
+
+    <table id="pozycjaTable" class="display">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Faktura</th>
+            <th>Opis</th>
+            <th>PKWiU</th>
+            <th>Cena Jedn.</th>
+            <th>Ilość</th>
+            <th>Netto</th>
+            <th>VAT (%)</th>
+            <th>Kwota VAT</th>
+            <th>Brutto</th>
+            <th>Akcje</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for pozycja in pozycje %}
+            <tr>
+                <td>{{ pozycja.id }}</td>
+                <td>{{ pozycja.faktura.faktura_numer }}</td>
+                <td>{{ pozycja.towar_opis }}</td>
+                <td>{{ pozycja.pkwiu }}</td>
+                <td>{{ pozycja.cena_jednostkowa }}</td>
+                <td>{{ pozycja.ilosc }}</td>
+                <td>{{ pozycja.netto }}</td>
+                <td>{{ pozycja.stawka }}</td>
+                <td>{{ pozycja.kwota_vat }}</td>
+                <td>{{ pozycja.brutto }}</td>
+                <td>
+                    <a href="{% url 'pozycja_update' pozycja.pk %}" class="btn btn-sm btn-warning">Edytuj</a>
+                    <a href="{% url 'pozycja_delete' pozycja.pk %}" class="btn btn-sm btn-danger">Usuń</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            $('#pozycjaTable').DataTable();
+        });
+    </script>
+
+{% endblock %}

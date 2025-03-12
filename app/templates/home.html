@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
+
 {% block content %}
     <h1 style="margin-bottom: 20px;">Homepage</h1>
 
     <section style="margin-bottom: 20px;">
-        <h2 style="margin-bottom: 20px;">Quick actions</h2>
+        <h2 style="margin-bottom: 20px;">Quick actions</h2>x
+        <ul>
+            <li><a href="{% url 'klient_list' %}">Zarządzaj Klientami</a></li>
+            <li><a href="{% url 'faktura_list' %}">Zarządzaj Fakturami</a></li>
+            <li><a href="{% url 'pozycja_list' %}">Zarządzaj Pozycjami</a></li>
+        </ul>
     </section>
 
 {% endblock %}
