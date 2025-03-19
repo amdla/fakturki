@@ -16,9 +16,11 @@
             <th>Numer</th>
             <th>Sprzedawca</th>
             <th>Nabywca</th>
-            <th>Data Wystawienia</th>
+            <th>Data Zakupu</th>
+            <th>Data Otrzymania Dokumentu</th>
             <th>Netto</th>
             <th>Brutto</th>
+            <th>Kwota VAT</th>
             <th>Akcje</th>
         </tr>
         </thead>
@@ -28,9 +30,11 @@
                 <td>{{ faktura.faktura_numer }}</td>
                 <td>{{ faktura.sprzedawca.klient_nazwa }}</td>
                 <td>{{ faktura.nabywca.klient_nazwa }}</td>
-                <td>{{ faktura.data_wyst }}</td>
+                <td>{{ faktura.data_zakupu }}</td>
+                <td>{{ faktura.data_otrzymania_dokumentu }}</td>
                 <td>{{ faktura.netto }}</td>
                 <td>{{ faktura.brutto }}</td>
+                <td>{{ faktura.kwota_vat }}</td>
                 <td>
                     <a href="{% url 'faktura_update' faktura.pk %}" class="btn btn-sm btn-warning">Edytuj</a>
                     <a href="{% url 'faktura_delete' faktura.pk %}" class="btn btn-sm btn-danger">Usuń</a>

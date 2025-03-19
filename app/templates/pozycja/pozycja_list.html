@@ -15,10 +15,7 @@
         <tr>
             <th>ID</th>
             <th>Faktura</th>
-            <th>Opis</th>
-            <th>PKWiU</th>
-            <th>Cena Jedn.</th>
-            <th>Ilość</th>
+            <th>Opis Zdarzenia Gosp.</th>
             <th>Netto</th>
             <th>VAT (%)</th>
             <th>Kwota VAT</th>
@@ -31,10 +28,7 @@
             <tr>
                 <td>{{ pozycja.id }}</td>
                 <td>{{ pozycja.faktura.faktura_numer }}</td>
-                <td>{{ pozycja.towar_opis }}</td>
-                <td>{{ pozycja.pkwiu }}</td>
-                <td>{{ pozycja.cena_jednostkowa }}</td>
-                <td>{{ pozycja.ilosc }}</td>
+                <td>{{ pozycja.opis_zdarzenia_gospodarczego }}</td>
                 <td>{{ pozycja.netto }}</td>
                 <td>{{ pozycja.stawka }}</td>
                 <td>{{ pozycja.kwota_vat }}</td>

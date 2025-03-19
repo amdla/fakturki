@@ -21,7 +21,6 @@
             <th>KRS</th>
             <th>Adres</th>
             <th>Data Rejestracji</th>
-            <th>Konta Bankowe</th>
             <th>Akcje</th>
         </tr>
         </thead>
@@ -36,17 +35,6 @@
                 <td>{{ klient.klient_krs|default:"-" }}</td>
                 <td>{{ klient.klient_adres|default:"Brak danych" }}</td>
                 <td>{{ klient.data_rejestracji|default:"-" }}</td>
-                <td>
-                    {% if klient.konta_bankowe %}
-                        <ul>
-                            {% for konto in klient.konta_bankowe %}
-                                <li>{{ konto }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        Brak kont
-                    {% endif %}
-                </td>
                 <td>
                     <a href="{% url 'klient_update' klient.pk %}" class="btn btn-sm btn-warning">Edytuj</a>
                     <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-sm btn-danger">Usuń</a>

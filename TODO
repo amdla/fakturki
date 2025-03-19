@@ -1,9 +1,6 @@
-8212527420
+zwinac konta bankowe
+brutto/netto moze byc puste
+do faktury dodac kwote podatku
 
 
-all fields with selectable values: faktura create, faktura update, pozycja create, pozycja update
-should be sorted by name/number rather than ID
 
-change stawka vat to enum
-after filling form check if netto + vat = brutto
-remove vat value and leave just stawka?

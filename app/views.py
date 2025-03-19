@@ -1,5 +1,4 @@
 import datetime
-
 import requests
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
@@ -24,28 +23,18 @@ def klient_list(request):
 def klient_create(request):
     if request.method == 'POST':
         form = KlientForm(request.POST)
-
         if form.is_valid():
             nip = form.cleaned_data['klient_nip']
-
             try:
-                # Fetch data from WL API
                 klient_data = fetch_klient_data_by_nip(nip)
-
-                # Create new Klient object from the API data
                 klient = Klient(**klient_data)
                 klient.save()
-
                 messages.success(request, f"Pomyślnie utworzono klienta o NIP {nip}.")
                 return redirect('klient_list')
-
             except ValueError as e:
-                # If there's any error, attach it to the form
                 form.add_error('klient_nip', str(e))
     else:
-        # Show empty form if GET
         form = KlientForm()
-
     return render(request, 'klient/klient_form.html', {'form': form})
 
 
@@ -122,7 +111,7 @@ def pozycja_create(request):
     if request.method == 'POST':
         form = PozycjaForm(request.POST)
         if form.is_valid():
-            form.save()
+            form.save()  # Pozycja's save() auto-calculates missing fields
             return redirect('pozycja_list')
     else:
         form = PozycjaForm()
@@ -149,36 +138,35 @@ def pozycja_delete(request, pk):
     return render(request, 'pozycja/pozycja_confirm_delete.html', {'pozycja': pozycja})
 
 
+########################################
+# EXTERNAL DATA FETCH
+########################################
+
 def fetch_klient_data_by_nip(nip: str) -> dict:
     """
-    Fetch data from the WL API given a NIP and today's date.
-    Return a dictionary that matches your Klient model fields.
-    Raise ValueError if invalid or no data.
+    Example function to fetch data from WL API given a NIP
+    and today's date. Returns a dict to populate the Klient model.
+    Raises ValueError if invalid or no data.
     """
     BASE_URL = "https://wl-api.mf.gov.pl/api"
+    date_str = datetime.date.today().strftime("%Y-%m-%d")
 
     if len(nip) != 10 or not nip.isdigit():
         raise ValueError("Niepoprawny format NIP (musi mieć 10 cyfr).")
 
-    date_str = datetime.date.today().strftime("%Y-%m-%d")
     url = f"{BASE_URL}/search/nip/{nip}?date={date_str}"
     response = requests.get(url)
 
     if response.status_code != 200:
-        # e.g., "400" or "404" or other error => raise
-        # parse JSON to see what's wrong if needed
         data = response.json()
         error_msg = data.get("error", {}).get("message", "Błąd zewnętrznego API.")
         raise ValueError(f"API error: {error_msg}")
 
-    # Parse the JSON success response
     data = response.json()
-    # Quick check if 'subject' exists
     subject = data.get("result", {}).get("subject")
     if not subject:
         raise ValueError("Brak danych dla podanego NIP.")
 
-    # Return the dict matching your Klient model fields
     return {
         "klient_nazwa": subject.get("name"),
         "klient_nip": subject.get("nip"),
@@ -187,5 +175,4 @@ def fetch_klient_data_by_nip(nip: str) -> dict:
         "klient_krs": subject.get("krs"),
         "klient_adres": subject.get("workingAddress"),
         "data_rejestracji": subject.get("registrationLegalDate"),
-        "konta_bankowe": subject.get("accountNumbers", []),
     }
