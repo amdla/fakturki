@@ -15,8 +15,7 @@ class KlientForm(forms.ModelForm):
 
 class FakturaForm(forms.ModelForm):
     """
-    Faktura form: sprzedawca/nabywca sorted by klient_nazwa,
-    and date fields for data_zakupu, data_otrzymania_dokumentu.
+    Faktura form: Sprzedawca and Nabywca are now selected based on NIP input.
     """
     # Field for selecting if the invoice is 'kosztowa' or 'przychodowa'
     rodzaj_faktury = forms.ChoiceField(
@@ -24,21 +23,13 @@ class FakturaForm(forms.ModelForm):
         label='Rodzaj Faktury',
     )
 
-    sprzedawca = forms.ModelChoiceField(
-        queryset=Klient.objects.order_by('klient_nazwa'),
-        label='Sprzedawca'
-    )
-    nabywca = forms.ModelChoiceField(
-        queryset=Klient.objects.order_by('klient_nazwa'),
-        label='Nabywca'
-    )
+    klient_nip = forms.CharField(max_length=10, label="NIP klienta", required=True)
 
     class Meta:
         model = Faktura
         fields = [
             'faktura_numer',
-            'sprzedawca',
-            'nabywca',
+            'klient_nip',
             'data_zakupu',
             'data_otrzymania_dokumentu',
             'rodzaj_faktury',  # Include the new field

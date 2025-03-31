@@ -76,25 +76,36 @@ def faktura_create(request):
                 klient = Klient.objects.filter(klient_nip=nip).first()
 
                 if klient:
-                    # Display client's name and ask user for confirmation
+                    # If client exists, ask the user to confirm
                     if request.POST.get('confirm_klient') == 'yes':
-                        # Proceed with creating the Faktura as before
+                        # Proceed with creating the Faktura
                         form = FakturaForm(request.POST)
                         if form.is_valid():
-                            form.save()
+                            faktura = form.save(commit=False)
+                            faktura.sprzedawca = klient  # Set seller (sprzedawca) as the found client
+                            faktura.nabywca = klient  # Or set another client for the buyer (nabywca)
+                            faktura.save()
                             messages.success(request, f"Pomyślnie utworzono fakturę.")
                             return redirect('faktura_list')
                     else:
-                        # Allow the user to modify or select another client
-                        form = KlientForm(initial={'klient_nip': nip})
+                        # If client is incorrect, allow modification or re-selection
+                        form = FakturaForm(initial={'klient_nip': nip})
                         return render(request, 'faktura/confirm_klient.html', {'klient': klient, 'form': form})
                 else:
-                    # If no client, fetch data from the API
+                    # If no client found, fetch data from the API
                     klient_data = fetch_klient_data_by_nip(nip)
                     klient = Klient(**klient_data)
                     klient.save()
-                    messages.success(request, f"Pomyślnie utworzono klienta o NIP {nip}.")
-                    return redirect('faktura_create')  # Continue creating Faktura
+
+                    # Continue creating Faktura with the new client
+                    form = FakturaForm(request.POST)
+                    if form.is_valid():
+                        faktura = form.save(commit=False)
+                        faktura.sprzedawca = klient  # Set seller (sprzedawca) to the new client
+                        faktura.nabywca = klient  # Set buyer (nabywca)
+                        faktura.save()
+                        messages.success(request, f"Pomyślnie utworzono fakturę.")
+                        return redirect('faktura_list')  # Redirect to list
             except ValueError as e:
                 messages.error(request, f"Błąd: {str(e)}")
                 return render(request, 'faktura/faktura_form.html', {'form': FakturaForm()})

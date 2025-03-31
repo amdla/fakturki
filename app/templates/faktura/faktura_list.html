@@ -14,6 +14,7 @@
         <thead>
         <tr>
             <th>Numer</th>
+            <th>Typ faktury</th>
             <th>Sprzedawca</th>
             <th>Nabywca</th>
             <th>Data Zakupu</th>
@@ -22,13 +23,19 @@
             <th>Brutto</th>
             <th>Kwota VAT</th>
             <th>Akcje</th>
-            <th>Kosztowa/Przychodowa</th>
         </tr>
         </thead>
         <tbody>
         {% for faktura in faktury %}
             <tr>
                 <td>{{ faktura.faktura_numer }}</td>
+                <td>
+                    {% if faktura.czy_kosztowa %}
+                        Kosztowa
+                    {% else %}
+                        Przychodowa
+                    {% endif %}
+                </td>
                 <td>{{ faktura.sprzedawca.klient_nazwa }}</td>
                 <td>{{ faktura.nabywca.klient_nazwa }}</td>
                 <td>{{ faktura.data_zakupu }}</td>
@@ -36,7 +43,7 @@
                 <td>{{ faktura.netto }}</td>
                 <td>{{ faktura.brutto }}</td>
                 <td>{{ faktura.kwota_vat }}</td>
-                <td>{{ faktura.czy_kosztowa }}</td>
+
                 <td>
                     <a href="{% url 'faktura_update' faktura.pk %}" class="btn btn-sm btn-warning">Edytuj</a>
                     <a href="{% url 'faktura_delete' faktura.pk %}" class="btn btn-sm btn-danger">Usuń</a>

@@ -1,3 +1,4 @@
-
-brutto/netto moze byc puste
-do faktury dodac kwote podatku
+if czy_kosztowa:
+    set nabywca to our klient instance
+else:
+    set sprzedawca to our klient instance

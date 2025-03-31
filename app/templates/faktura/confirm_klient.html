@@ -11,7 +11,8 @@
     <form method="POST">
         {% csrf_token %}
         <p>Czy to jest poprawny klient?</p>
-        <button type="submit" name="confirm_klient" value="yes" class="btn btn-primary">Tak, to jest poprawny klient</button>
+        <button type="submit" name="confirm_klient" value="yes" class="btn btn-primary">Tak, to jest poprawny klient
+        </button>
         <a href="{% url 'klient_create' %}" class="btn btn-secondary">Nie, pozwól mi edytować dane klienta</a>
     </form>
 {% endblock %}
