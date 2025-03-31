@@ -28,8 +28,10 @@ class Faktura(models.Model):
     netto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     brutto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    # NEW: sum of kwota_vat across all Pozycja
     kwota_vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # New field to define whether the invoice is 'kosztowa' or 'przychodowa'
+    czy_kosztowa = models.BooleanField(default=False)
 
     def __str__(self):
         return self.faktura_numer
@@ -79,7 +81,7 @@ class Pozycja(models.Model):
     netto = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     brutto = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
-    stawka = models.CharField(max_length=3, choices=VAT_CHOICES, default='23') #TODO: fix kurwa bo jest dwa razy
+    stawka = models.CharField(max_length=3, choices=VAT_CHOICES, default='23')  # TODO: fix kurwa bo jest dwa razy
 
     kwota_vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
