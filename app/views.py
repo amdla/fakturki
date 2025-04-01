@@ -1,4 +1,5 @@
 import datetime
+
 import requests
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
@@ -69,48 +70,54 @@ def faktura_list(request):
 
 def faktura_create(request):
     if request.method == 'POST':
+        # Initialize the form with POST data upfront
+        form = FakturaForm(request.POST)
         nip = request.POST.get('klient_nip', None)
+
         if nip:
             try:
-                # Check if the client exists with this NIP
                 klient = Klient.objects.filter(klient_nip=nip).first()
 
                 if klient:
-                    # If client exists, ask the user to confirm
+                    # Ensure that we set the correct nabywca or sprzedawca
                     if request.POST.get('confirm_klient') == 'yes':
-                        # Proceed with creating the Faktura
-                        form = FakturaForm(request.POST)
                         if form.is_valid():
                             faktura = form.save(commit=False)
-                            faktura.sprzedawca = klient  # Set seller (sprzedawca) as the found client
-                            faktura.nabywca = klient  # Or set another client for the buyer (nabywca)
+                            faktura.nabywca = klient  # Assign the client to nabywca field
                             faktura.save()
-                            messages.success(request, f"Pomyślnie utworzono fakturę.")
+                            messages.success(request, "Pomyślnie utworzono fakturę.")
                             return redirect('faktura_list')
                     else:
-                        # If client is incorrect, allow modification or re-selection
+                        # Re-initialize form with initial NIP for confirmation
                         form = FakturaForm(initial={'klient_nip': nip})
-                        return render(request, 'faktura/confirm_klient.html', {'klient': klient, 'form': form})
+                        return render(request, 'faktura/faktura_confirm_klient.html', {'klient': klient, 'form': form})
                 else:
-                    # If no client found, fetch data from the API
+                    # Fetch and save new client from API
                     klient_data = fetch_klient_data_by_nip(nip)
                     klient = Klient(**klient_data)
                     klient.save()
 
-                    # Continue creating Faktura with the new client
-                    form = FakturaForm(request.POST)
+                    # Proceed with form validation
                     if form.is_valid():
                         faktura = form.save(commit=False)
-                        faktura.sprzedawca = klient  # Set seller (sprzedawca) to the new client
-                        faktura.nabywca = klient  # Set buyer (nabywca)
+                        faktura.nabywca = klient  # Ensure that the client is assigned to nabywca
                         faktura.save()
-                        messages.success(request, f"Pomyślnie utworzono fakturę.")
-                        return redirect('faktura_list')  # Redirect to list
+                        messages.success(request, "Pomyślnie utworzono fakturę.")
+                        return redirect('faktura_list')
             except ValueError as e:
                 messages.error(request, f"Błąd: {str(e)}")
-                return render(request, 'faktura/faktura_form.html', {'form': FakturaForm()})
+                return render(request, 'faktura/faktura_form.html', {'form': form})
+
+        # Handle case where NIP is missing or form is invalid
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pomyślnie utworzono fakturę.")
+            return redirect('faktura_list')
+        else:
+            return render(request, 'faktura/faktura_form.html', {'form': form})
     else:
         form = FakturaForm()
+
     return render(request, 'faktura/faktura_form.html', {'form': form})
 
 

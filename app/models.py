@@ -61,6 +61,21 @@ class Faktura(models.Model):
         # Update all three fields in the DB in one shot
         self.save(update_fields=['netto', 'brutto', 'kwota_vat'])
 
+        def save(self, *args, **kwargs):
+            """
+            This method checks if it's a 'kosztowa' invoice and assigns the correct client.
+            """
+            if self.czy_kosztowa:
+                # Fetch our Klient instance (assuming it's pre-configured in the DB or fetched from an API)
+                our_klient = Klient.objects.get(klient_nip="8212527420")  # Hardcoded NIP for the "our" Klient
+                self.nabywca = our_klient
+            else:
+                # Similar logic can be applied if "sprzedawca" should always be the same client
+                our_klient = Klient.objects.get(klient_nip="8212527420")
+                self.sprzedawca = our_klient
+
+            super().save(*args, **kwargs)
+
 
 class Pozycja(models.Model):
     VAT_CHOICES = [

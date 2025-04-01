@@ -50,6 +50,22 @@ class FakturaForm(forms.ModelForm):
 
         return cleaned_data
 
+    def save(self, commit=True):
+        faktura = super().save(commit=False)
+
+        if faktura.czy_kosztowa:
+            # Assign 'our' Klient instance to nabywca
+            our_klient = Klient.objects.get(klient_nip="8212527420")
+            faktura.nabywca = our_klient
+        else:
+            # Assign 'our' Klient instance to sprzedawca
+            our_klient = Klient.objects.get(klient_nip="8212527420")
+            faktura.sprzedawca = our_klient
+
+        if commit:
+            faktura.save()
+        return faktura
+
 
 class PozycjaForm(forms.ModelForm):
     faktura = forms.ModelChoiceField(
