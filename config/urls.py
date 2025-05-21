@@ -23,4 +23,7 @@ urlpatterns = [
     path('pozycje/create/', views.pozycja_create, name='pozycja_create'),
     path('pozycje/update/<int:pk>/', views.pozycja_update, name='pozycja_update'),
     path('pozycje/delete/<int:pk>/', views.pozycja_delete, name='pozycja_delete'),
+
+    path('jpk/generuj/', views.jpk_select_period, name='jpk_select_period'),
+    path('jpk/generuj/xml/', views.generate_jpk, name='generate_jpk'),
 ]

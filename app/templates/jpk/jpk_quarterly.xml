@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jpk xmlns="http://jpk.mf.gov.pl/wzor/2021/11/29/11121/"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://jpk.mf.gov.pl/wzor/2021/11/29/11121/ schemat.xsd">
+    <naglowek>
+        <kodFormularza kodSystemowy="JPK_VAT">JPK_VAT</kodFormularza>
+        <wariantFormularza>3</wariantFormularza>
+        <dataWytworzeniaJPK>{{ generation_date|date:"Y-m-d\TH:i:s" }}</dataWytworzeniaJPK>
+        <dataOd>{{ start_date|date:"Y-m-d" }}</dataOd>
+        <dataDo>{{ end_date|date:"Y-m-d" }}</dataDo>
+        <domyslnyKodWaluty>PLN</domyslnyKodWaluty>
+        <kodUrzedu>0201</kodUrzedu>
+    </naglowek>
+
+    <!-- Quarterly specific elements -->
+    <podmiot>
+        <!-- Company data -->
+    </podmiot>
+
+    <!-- Extended sales/purchase data for quarters -->
+</jpk>

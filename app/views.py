@@ -1,8 +1,13 @@
 import datetime
+from calendar import monthrange
+from datetime import date
 
 import requests
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 from app.forms import KlientForm, FakturaForm, PozycjaForm
 from app.models import Klient, Faktura, Pozycja
@@ -219,3 +224,97 @@ def fetch_klient_data_by_nip(nip: str) -> dict:
         "klient_adres": subject.get("workingAddress"),
         "data_rejestracji": subject.get("registrationLegalDate"),
     }
+
+
+def jpk_select_period(request):
+    current_year = date.today().year
+
+    # Create month choices
+    months = [
+        (f'month-{m}', f"{name} {current_year}")
+        for m, name in [
+            (1, 'Styczeń'), (2, 'Luty'), (3, 'Marzec'),
+            (4, 'Kwiecień'), (5, 'Maj'), (6, 'Czerwiec'),
+            (7, 'Lipiec'), (8, 'Sierpień'), (9, 'Wrzesień'),
+            (10, 'Październik'), (11, 'Listopad'), (12, 'Grudzień')
+        ]
+    ]
+
+    # Create quarter choices
+    quarters = [
+        (f'q{q}', f'{num} kwartał {current_year}')
+        for q, num in [(1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV')]
+    ]
+
+    periods = [('header', 'Pojedyncze miesiące')] + months + [('header', 'Kwartały')] + quarters
+
+    if request.method == 'POST':
+        selected = request.POST.get('period')
+
+        if selected.startswith('month-'):
+            # Handle monthly selection
+            month = int(selected.split('-')[1])
+            start_date = date(current_year, month, 1)
+            last_day = monthrange(current_year, month)[1]
+            end_date = date(current_year, month, last_day)
+            period_type = 'month'
+
+        elif selected.startswith('q'):
+            # Handle quarterly selection
+            quarter = int(selected[1])
+            month_start = (quarter - 1) * 3 + 1
+            start_date = date(current_year, month_start, 1)
+
+            month_end = month_start + 2
+            last_day = monthrange(current_year, month_end)[1]
+            end_date = date(current_year, month_end, last_day)
+            period_type = 'quarter'
+
+        else:
+            messages.error(request, "Nieprawidłowy wybór okresu")
+            return redirect('jpk_select_period')
+
+        return redirect(reverse('generate_jpk') + f'?start={start_date}&end={end_date}&type={period_type}')
+
+    return render(request, 'jpk/select_period.html', {
+        'periods': periods,
+        'current_year': current_year
+    })
+
+
+def generate_jpk(request):
+    # Get parameters from URL
+    start_date = date.fromisoformat(request.GET.get('start'))
+    end_date = date.fromisoformat(request.GET.get('end'))
+    period_type = request.GET.get('type', 'month')
+
+    # Get invoices
+    faktury = Faktura.objects.filter(
+        data_zakupu__gte=start_date,
+        data_zakupu__lte=end_date
+    ).prefetch_related('pozycja_set')
+
+    # Get company data
+    try:
+        company = Klient.objects.get(klient_nip="8212527420")
+    except Klient.DoesNotExist:
+        return HttpResponse("Błąd konfiguracji: brak danych firmy", status=500)
+
+    context = {
+        'company': company,
+        'faktury': faktury,
+        'start_date': start_date,
+        'end_date': end_date,
+        'period_type': period_type,
+        'generation_date': date.today(),
+    }
+
+    # Choose template based on period type
+    template_name = 'jpk/jpk_quarterly.xml' if period_type == 'quarter' else 'jpk/jpk_monthly.xml'
+
+    xml_content = render_to_string(template_name, context)
+
+    response = HttpResponse(xml_content, content_type='application/xml')
+    filename = f"JPK_{period_type}_{start_date}_{end_date}.xml"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
