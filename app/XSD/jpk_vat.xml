@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<JPK xmlns="http://jpk.mf.gov.pl/wzor/2017/11/13/1113/"
+>
+    <Naglowek>
+        <KodFormularza kodSystemowy="JPK_V7M ({{ wariant_formularza }})" wersjaSchemy="1-0">JPK_VAT</KodFormularza>
+        <WariantFormularza>{{ wariant_formularza }}</WariantFormularza>
+        <CelZlozenia poz="P_7">1</CelZlozenia>
+        <DataWytworzeniaJPK>{{ generation_date|date:"Y-m-d\TH:i:s" }}</DataWytworzeniaJPK>
+        <DataOd>{{ start_date|date:"Y-m-d" }}</DataOd>
+        <DataDo>{{ end_date|date:"Y-m-d" }}</DataDo>
+        <DomyslnyKodWaluty>PLN</DomyslnyKodWaluty>
+        <KodUrzedu>{{ company.kod_urzedu|default:"2615" }}</KodUrzedu>
+    </Naglowek>
+
+    <Podmiot1>
+        <NIP>{{ company.klient_nip }}</NIP>
+        <PelnaNazwa>{{ company.klient_nazwa }}</PelnaNazwa>
+        {% if company.klient_regon %}
+            <REGON>{{ company.klient_regon }}</REGON>{% endif %}
+        {% if company.klient_krs %}
+            <KRS>{{ company.klient_krs }}</KRS>{% endif %}
+        <Email>{{ company.email|default:"kontakt@firma.pl" }}</Email>
+    </Podmiot1>
+
+    {% comment %}SEKCJA SPRZEDAŻY{% endcomment %}
+    {% for wiersz in sprzedaz_wiersze %}
+        <SprzedazWiersz typ="G">
+            <LpSprzedazy>{{ wiersz.lp }}</LpSprzedazy>
+            <NrKontrahenta>{{ wiersz.nip_nabywcy }}</NrKontrahenta>
+            <NazwaKontrahenta>{{ wiersz.nazwa_nabywcy }}</NazwaKontrahenta>
+            <AdresKontrahenta>{{ wiersz.adres_nabywcy }}</AdresKontrahenta>
+            <DowodSprzedazy>{{ wiersz.dowod_sprzedazy }}</DowodSprzedazy>
+            <DataWystawienia>{{ wiersz.data_wystawienia|date:"Y-m-d" }}</DataWystawienia>
+            <DataSprzedazy>{{ wiersz.data_sprzedazy|date:"Y-m-d" }}</DataSprzedazy>
+
+            {% comment %}Kwoty według stawek VAT{% endcomment %}
+            {% for stawka, dane in wiersz.pozycje_vat.items %}
+                {% if stawka == '23' and dane.netto > 0 %}
+                    <K_19>{{ dane.netto|floatformat:2 }}</K_19>
+                    <K_20>{{ dane.vat|floatformat:2 }}</K_20>
+                {% elif stawka == '8' and dane.netto > 0 %}
+                    <K_17>{{ dane.netto|floatformat:2 }}</K_17>
+                    <K_18>{{ dane.vat|floatformat:2 }}</K_18>
+                {% elif stawka == '5' and dane.netto > 0 %}
+                    <K_15>{{ dane.netto|floatformat:2 }}</K_15>
+                    <K_16>{{ dane.vat|floatformat:2 }}</K_16>
+                {% elif stawka == '0' and dane.netto > 0 %}
+                    <K_13>{{ dane.netto|floatformat:2 }}</K_13>
+                {% elif stawka == 'ZW' and dane.netto > 0 %}
+                    <K_11>{{ dane.netto|floatformat:2 }}</K_11>
+                {% elif stawka == 'NP' and dane.netto > 0 %}
+                    <K_11>{{ dane.netto|floatformat:2 }}</K_11>
+                {% endif %}
+            {% endfor %}
+        </SprzedazWiersz>
+    {% endfor %}
+
+    {% comment %}SEKCJA ZAKUPÓW{% endcomment %}
+    {% for wiersz in zakup_wiersze %}
+        <ZakupWiersz typ="G">
+            <LpZakupu>{{ wiersz.lp }}</LpZakupu>
+            <NrDostawcy>{{ wiersz.nip_dostawcy }}</NrDostawcy>
+            <NazwaDostawcy>{{ wiersz.nazwa_dostawcy }}</NazwaDostawcy>
+            <AdresDostawcy>{{ wiersz.adres_dostawcy }}</AdresDostawcy>
+            <DowodZakupu>{{ wiersz.dowod_zakupu }}</DowodZakupu>
+            <DataZakupu>{{ wiersz.data_zakupu|date:"Y-m-d" }}</DataZakupu>
+            <DataWplywu>{{ wiersz.data_otrzymania|date:"Y-m-d" }}</DataWplywu>
+
+            {% comment %}Kwoty według stawek VAT{% endcomment %}
+            {% for stawka, dane in wiersz.pozycje_vat.items %}
+                {% if stawka == '23' and dane.netto > 0 %}
+                    <K_45>{{ dane.netto|floatformat:2 }}</K_45>
+                    <K_46>{{ dane.vat|floatformat:2 }}</K_46>
+                {% elif stawka == '8' and dane.netto > 0 %}
+                    <K_43>{{ dane.netto|floatformat:2 }}</K_43>
+                    <K_44>{{ dane.vat|floatformat:2 }}</K_44>
+                {% elif stawka == '5' and dane.netto > 0 %}
+                    <K_41>{{ dane.netto|floatformat:2 }}</K_41>
+                    <K_42>{{ dane.vat|floatformat:2 }}</K_42>
+                {% elif stawka == '0' and dane.netto > 0 %}
+                    <K_39>{{ dane.netto|floatformat:2 }}</K_39>
+                {% elif stawka == 'ZW' and dane.netto > 0 %}
+                    <K_37>{{ dane.netto|floatformat:2 }}</K_37>
+                {% elif stawka == 'NP' and dane.netto > 0 %}
+                    <K_37>{{ dane.netto|floatformat:2 }}</K_37>
+                {% endif %}
+            {% endfor %}
+        </ZakupWiersz>
+    {% endfor %}
+
+    {% comment %}SEKCJA PODSUMOWAŃ VAT{% endcomment %}
+    <StawkiPodatku>
+        {% comment %}SPRZEDAŻ - VAT NALEŻNY{% endcomment %}
+        {% if vat_summary.sprzedaz.5.netto > 0 %}
+            <P_35>{{ vat_summary.sprzedaz.5.netto|floatformat:2 }}</P_35>
+            <P_36>{{ vat_summary.sprzedaz.5.vat|floatformat:2 }}</P_36>
+        {% endif %}
+
+        {% if vat_summary.sprzedaz.8.netto > 0 %}
+            <P_37>{{ vat_summary.sprzedaz.8.netto|floatformat:2 }}</P_37>
+            <P_38>{{ vat_summary.sprzedaz.8.vat|floatformat:2 }}</P_38>
+        {% endif %}
+
+        {% if vat_summary.sprzedaz.23.netto > 0 %}
+            <P_39>{{ vat_summary.sprzedaz.23.netto|floatformat:2 }}</P_39>
+            <P_40>{{ vat_summary.sprzedaz.23.vat|floatformat:2 }}</P_40>
+        {% endif %}
+
+        {% comment %}ZAKUPY - VAT NALICZONY{% endcomment %}
+        {% if vat_summary.zakup.5.netto > 0 %}
+            <P_45>{{ vat_summary.zakup.5.netto|floatformat:2 }}</P_45>
+            <P_46>{{ vat_summary.zakup.5.vat|floatformat:2 }}</P_46>
+        {% endif %}
+
+        {% if vat_summary.zakup.8.netto > 0 %}
+            <P_47>{{ vat_summary.zakup.8.netto|floatformat:2 }}</P_47>
+            <P_48>{{ vat_summary.zakup.8.vat|floatformat:2 }}</P_48>
+        {% endif %}
+
+        {% if vat_summary.zakup.23.netto > 0 %}
+            <P_49>{{ vat_summary.zakup.23.netto|floatformat:2 }}</P_49>
+            <P_50>{{ vat_summary.zakup.23.vat|floatformat:2 }}</P_50>
+        {% endif %}
+
+        {% comment %}PODSUMOWANIE{% endcomment %}
+        <P_51>{{ vat_summary.vat_nalezny|floatformat:2 }}</P_51>
+        <P_52>{{ vat_summary.vat_naliczony|floatformat:2 }}</P_52>
+
+        {% if vat_summary.vat_do_zaplaty > 0 %}
+            <P_53>{{ vat_summary.vat_do_zaplaty|floatformat:2 }}</P_53>
+        {% elif vat_summary.vat_do_zaplaty < 0 %}
+            <P_54>{{ vat_summary.vat_do_zaplaty|floatformat:2 }}</P_54>
+        {% endif %}
+    </StawkiPodatku>
+</JPK>

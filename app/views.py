@@ -4,12 +4,11 @@ from datetime import date
 
 import requests
 from django.contrib import messages
-from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.urls import reverse
 
 from app.forms import KlientForm, FakturaForm, PozycjaForm
+from app.jpk_vat_generator import generate_jpk_vat_response
 from app.models import Klient, Faktura, Pozycja
 
 
@@ -226,33 +225,40 @@ def fetch_klient_data_by_nip(nip: str) -> dict:
     }
 
 
-def jpk_select_period(request):
+def jpk_vat_select_period(request):
+    """
+    Widok wyboru okresu dla JPK_VAT z obsługą własnego zakresu dat
+    """
     current_year = date.today().year
-
-    # Create month choices
-    months = [
-        (f'month-{m}', f"{name} {current_year}")
-        for m, name in [
-            (1, 'Styczeń'), (2, 'Luty'), (3, 'Marzec'),
-            (4, 'Kwiecień'), (5, 'Maj'), (6, 'Czerwiec'),
-            (7, 'Lipiec'), (8, 'Sierpień'), (9, 'Wrzesień'),
-            (10, 'Październik'), (11, 'Listopad'), (12, 'Grudzień')
-        ]
-    ]
-
-    # Create quarter choices
-    quarters = [
-        (f'q{q}', f'{num} kwartał {current_year}')
-        for q, num in [(1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV')]
-    ]
-
-    periods = [('header', 'Pojedyncze miesiące')] + months + [('header', 'Kwartały')] + quarters
 
     if request.method == 'POST':
         selected = request.POST.get('period')
 
-        if selected.startswith('month-'):
-            # Handle monthly selection
+        if selected == 'custom':
+            # Obsługa własnego zakresu dat
+            try:
+                start_date = date.fromisoformat(request.POST.get('start_date'))
+                end_date = date.fromisoformat(request.POST.get('end_date'))
+
+                if start_date > end_date:
+                    messages.error(request, "Data początku nie może być późniejsza niż data końca")
+                    return redirect('jpk_vat_select_period')
+
+                # Określ typ okresu na podstawie długości
+                period_length = (end_date - start_date).days + 1
+                if period_length <= 31:
+                    period_type = 'month'
+                elif period_length <= 92:
+                    period_type = 'quarter'
+                else:
+                    period_type = 'custom'
+
+            except (ValueError, TypeError):
+                messages.error(request, "Nieprawidłowy format daty")
+                return redirect('jpk_vat_select_period')
+
+        elif selected.startswith('month-'):
+            # Obsługa wyboru miesięcznego
             month = int(selected.split('-')[1])
             start_date = date(current_year, month, 1)
             last_day = monthrange(current_year, month)[1]
@@ -260,7 +266,7 @@ def jpk_select_period(request):
             period_type = 'month'
 
         elif selected.startswith('q'):
-            # Handle quarterly selection
+            # Obsługa wyboru kwartalnego
             quarter = int(selected[1])
             month_start = (quarter - 1) * 3 + 1
             start_date = date(current_year, month_start, 1)
@@ -272,49 +278,115 @@ def jpk_select_period(request):
 
         else:
             messages.error(request, "Nieprawidłowy wybór okresu")
-            return redirect('jpk_select_period')
+            return redirect('jpk_vat_select_period')
 
-        return redirect(reverse('generate_jpk') + f'?start={start_date}&end={end_date}&type={period_type}')
-
-    return render(request, 'jpk/select_period.html', {
-        'periods': periods,
-        'current_year': current_year
-    })
-
-
-def generate_jpk(request):
-    # Get parameters from URL
-    start_date = date.fromisoformat(request.GET.get('start'))
-    end_date = date.fromisoformat(request.GET.get('end'))
-    period_type = request.GET.get('type', 'month')
-
-    # Get invoices
-    faktury = Faktura.objects.filter(
-        data_zakupu__gte=start_date,
-        data_zakupu__lte=end_date
-    ).prefetch_related('pozycja_set')
-
-    # Get company data
-    try:
-        company = Klient.objects.get(klient_nip="8212527420")
-    except Klient.DoesNotExist:
-        return HttpResponse("Błąd konfiguracji: brak danych firmy", status=500)
+        return redirect(reverse('generate_jpk_vat') + f'?start={start_date}&end={end_date}&type={period_type}')
 
     context = {
-        'company': company,
-        'faktury': faktury,
-        'start_date': start_date,
-        'end_date': end_date,
-        'period_type': period_type,
-        'generation_date': date.today(),
+        'current_year': current_year,
+        'title': 'Wybierz okres dla JPK_VAT'
     }
 
-    # Choose template based on period type
-    template_name = 'jpk/jpk_quarterly.xml' if period_type == 'quarter' else 'jpk/jpk_monthly.xml'
+    return render(request, 'jpk/jpk_select_period.html', context)
 
-    xml_content = render_to_string(template_name, context)
 
-    response = HttpResponse(xml_content, content_type='application/xml')
-    filename = f"JPK_{period_type}_{start_date}_{end_date}.xml"
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
+def generate_jpk_vat(request):
+    """
+    Widok do generowania JPK_VAT z wybranym okresem
+    """
+    try:
+        # Pobierz parametry z URL
+        start_date = date.fromisoformat(request.GET.get('start'))
+        end_date = date.fromisoformat(request.GET.get('end'))
+        period_type = request.GET.get('type', 'month')
+
+        # Sprawdź czy mamy faktury w tym okresie
+        from app.models import Faktura
+        faktury_count = Faktura.objects.filter(
+            data_zakupu__gte=start_date,
+            data_zakupu__lte=end_date
+        ).count()
+
+        if faktury_count == 0:
+            messages.warning(request, f"Brak faktur w wybranym okresie ({start_date} - {end_date})")
+            return redirect('jpk_vat_select_period')
+
+        # Generuj JPK_VAT
+        return generate_jpk_vat_response(start_date, end_date, period_type)
+
+    except (ValueError, TypeError):
+        messages.error(request, "Nieprawidłowe parametry daty")
+        return redirect('jpk_vat_select_period')
+    except Exception as e:
+        messages.error(request, f"Błąd generowania JPK_VAT: {str(e)}")
+        return redirect('jpk_vat_select_period')
+
+
+def jpk_vat_preview(request):
+    """
+    Widok podglądu danych JPK_VAT przed generowaniem
+    """
+    try:
+        start_date = date.fromisoformat(request.GET.get('start'))
+        end_date = date.fromisoformat(request.GET.get('end'))
+        period_type = request.GET.get('type', 'month')
+
+        from app.jpk_vat_generator import prepare_jpk_vat_data
+        from app.models import Klient, Faktura
+
+        # Pobierz dane firmy
+        company = Klient.objects.get(klient_nip="8212527420")
+
+        # Pobierz faktury
+        faktury = Faktura.objects.filter(
+            data_zakupu__gte=start_date,
+            data_zakupu__lte=end_date
+        ).prefetch_related('pozycja_set', 'sprzedawca', 'nabywca')
+
+        # Przygotuj dane
+        jpk_data = prepare_jpk_vat_data(company, faktury, start_date, end_date, period_type)
+
+        context = {
+            'jpk_data': jpk_data,
+            'start_date': start_date,
+            'end_date': end_date,
+            'period_type': period_type,
+            'faktury_count': faktury.count(),
+            'sprzedaz_count': len(jpk_data['sprzedaz_wiersze']),
+            'zakup_count': len(jpk_data['zakup_wiersze']),
+        }
+
+        return render(request, 'jpk/jpk_vat_preview.html', context)
+
+    except Klient.DoesNotExist:
+        messages.error(request, "Brak danych firmy w bazie (NIP: 8212527420)")
+        return redirect('jpk_vat_select_period')
+    except Exception as e:
+        messages.error(request, f"Błąd: {str(e)}")
+        return redirect('jpk_vat_select_period')
+
+
+# Funkcja pomocnicza do testowania z konkretnym okresem
+def test_jpk_vat_for_period(start_date, end_date):
+    """
+    Funkcja testowa do sprawdzenia generowania JPK_VAT dla konkretnego okresu
+    """
+    try:
+        from app.jpk_vat_generator import generate_jpk_vat_xml
+
+        xml_content = generate_jpk_vat_xml(start_date, end_date, 'month')
+        print(f"JPK_VAT wygenerowany pomyślnie dla okresu {start_date} - {end_date}!")
+        print(f"Długość XML: {len(xml_content)} znaków")
+
+        # Sprawdź ile faktur zostało uwzględnionych
+        from app.models import Faktura
+        faktury_count = Faktura.objects.filter(
+            data_zakupu__gte=start_date,
+            data_zakupu__lte=end_date
+        ).count()
+        print(f"Liczba faktur w okresie: {faktury_count}")
+
+        return xml_content
+    except Exception as e:
+        print(f"Błąd: {str(e)}")
+        return None

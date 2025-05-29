@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h2>Podgląd JPK_VAT</h2>
+            <p class="mb-0">
+                Okres: {{ start_date }} - {{ end_date }}
+                ({{ period_type|title }})
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h5>Faktury łącznie</h5>
+                            <h3>{{ faktury_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h5>Wiersze sprzedaży</h5>
+                            <h3>{{ sprzedaz_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h5>Wiersze zakupu</h5>
+                            <h3>{{ zakup_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Dane firmy</h4>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>NIP:</th>
+                            <td>{{ jpk_data.firma.nip }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nazwa:</th>
+                            <td>{{ jpk_data.firma.nazwa }}</td>
+                        </tr>
+                        <tr>
+                            <th>Regon:</th>
+                            <td>{{ jpk_data.firma.regon|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ jpk_data.firma.email|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Okres rozliczeniowy</h4>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Kod okresu:</th>
+                            <td>{{ jpk_data.naglowek.kod_okresu }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data od:</th>
+                            <td>{{ jpk_data.naglowek.data_od }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data do:</th>
+                            <td>{{ jpk_data.naglowek.data_do }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data utworzenia:</th>
+                            <td>{{ jpk_data.naglowek.data_utworzenia }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {% if jpk_data.sprzedaz_wiersze %}
+                <div class="mt-4">
+                    <h4>Przykładowe wiersze sprzedaży (pierwsze 5)</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                            <tr>
+                                <th>Lp</th>
+                                <th>Data wystawienia</th>
+                                <th>Nr faktury</th>
+                                <th>Nabywca</th>
+                                <th>Wartość netto</th>
+                                <th>VAT</th>
+                                <th>Brutto</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for wiersz in jpk_data.sprzedaz_wiersze|slice:":5" %}
+                                <tr>
+                                    <td>{{ wiersz.lp }}</td>
+                                    <td>{{ wiersz.data_wystawienia }}</td>
+                                    <td>{{ wiersz.numer_faktury }}</td>
+                                    <td>{{ wiersz.nabywca_nazwa|truncatechars:30 }}</td>
+                                    <td class="text-right">{{ wiersz.k_19|floatformat:2 }}</td>
+                                    <td class="text-right">{{ wiersz.k_20|floatformat:2 }}</td>
+                                    <td class="text-right">{{ wiersz.k_21|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if sprzedaz_count > 5 %}
+                        <p class="text-muted">... i {{ sprzedaz_count|add:"-5" }} więcej</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if jpk_data.zakup_wiersze %}
+                <div class="mt-4">
+                    <h4>Przykładowe wiersze zakupu (pierwsze 5)</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                            <tr>
+                                <th>Lp</th>
+                                <th>Data zakupu</th>
+                                <th>Nr faktury</th>
+                                <th>Sprzedawca</th>
+                                <th>Wartość netto</th>
+                                <th>VAT</th>
+                                <th>Brutto</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for wiersz in jpk_data.zakup_wiersze|slice:":5" %}
+                                <tr>
+                                    <td>{{ wiersz.lp }}</td>
+                                    <td>{{ wiersz.data_zakupu }}</td>
+                                    <td>{{ wiersz.numer_faktury }}</td>
+                                    <td>{{ wiersz.sprzedawca_nazwa|truncatechars:30 }}</td>
+                                    <td class="text-right">{{ wiersz.k_45|floatformat:2 }}</td>
+                                    <td class="text-right">{{ wiersz.k_46|floatformat:2 }}</td>
+                                    <td class="text-right">{{ wiersz.k_47|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if zakup_count > 5 %}
+                        <p class="text-muted">... i {{ zakup_count|add:"-5" }} więcej</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{% url 'generate_jpk_vat' %}?start={{ start_date }}&end={{ end_date }}&type={{ period_type }}"
+                   class="btn btn-success btn-lg">
+                    <i class="fas fa-download"></i> Pobierz plik JPK_VAT
+                </a>
+                <a href="{% url 'jpk_vat_select_period' %}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-arrow-left"></i> Powrót do wyboru okresu
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

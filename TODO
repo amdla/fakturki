@@ -2,3 +2,8 @@ if czy_kosztowa:
     set nabywca to our klient instance
 else:
     set sprzedawca to our klient instance
+
+        lxml
+        NSMAP
+
+        https://www.gov.pl/web/kas/struktury-jpk

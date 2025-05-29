@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h2>Generowanie JPK_VAT</h2>
+            <p class="mb-0">Wybierz okres rozliczeniowy dla JPK_VAT ({{ current_year }} rok):</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label><strong>Okresy miesięczne:</strong></label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-1" id="month1">
+                                <label class="form-check-label" for="month1">Styczeń {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-2" id="month2">
+                                <label class="form-check-label" for="month2">Luty {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-3" id="month3">
+                                <label class="form-check-label" for="month3">Marzec {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-4" id="month4">
+                                <label class="form-check-label" for="month4">Kwiecień {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-5" id="month5">
+                                <label class="form-check-label" for="month5">Maj {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-6" id="month6">
+                                <label class="form-check-label" for="month6">Czerwiec {{ current_year }}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-7" id="month7">
+                                <label class="form-check-label" for="month7">Lipiec {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-8" id="month8">
+                                <label class="form-check-label" for="month8">Sierpień {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-9" id="month9">
+                                <label class="form-check-label" for="month9">Wrzesień {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-10"
+                                       id="month10">
+                                <label class="form-check-label" for="month10">Październik {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-11"
+                                       id="month11">
+                                <label class="form-check-label" for="month11">Listopad {{ current_year }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="period" value="month-12"
+                                       id="month12">
+                                <label class="form-check-label" for="month12">Grudzień {{ current_year }}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="form-group">
+                    <label><strong>Okresy kwartalne:</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="period" value="q1" id="q1">
+                        <label class="form-check-label" for="q1">I kwartał {{ current_year }} (styczeń - marzec)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="period" value="q2" id="q2">
+                        <label class="form-check-label" for="q2">II kwartał {{ current_year }} (kwiecień -
+                            czerwiec)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="period" value="q3" id="q3">
+                        <label class="form-check-label" for="q3">III kwartał {{ current_year }} (lipiec -
+                            wrzesień)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="period" value="q4" id="q4">
+                        <label class="form-check-label" for="q4">IV kwartał {{ current_year }} (październik -
+                            grudzień)</label>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="form-group">
+                    <label><strong>Własny zakres dat:</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="period" value="custom" id="custom">
+                        <label class="form-check-label" for="custom">Określ własny zakres</label>
+                    </div>
+                    <div class="row mt-2" id="custom-dates" style="display: none;">
+                        <div class="col-md-6">
+                            <label for="start_date">Data rozpoczęcia:</label>
+                            <input type="date" class="form-control" name="start_date" id="start_date">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="end_date">Data zakończenia:</label>
+                            <input type="date" class="form-control" name="end_date" id="end_date">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-file-download"></i> Dalej
+                    </button>
+                    <a href="{% url 'home' %}" class="btn btn-secondary ml-2">
+                        <i class="fas fa-arrow-left"></i> Powrót
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide custom date inputs
+        document.getElementById('custom').addEventListener('change', function () {
+            document.getElementById('custom-dates').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Hide custom dates when other options are selected
+        document.querySelectorAll('input[name="period"]:not(#custom)').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('custom-dates').style.display = 'none';
+                }
+            });
+        });
+    </script>
+{% endblock %}

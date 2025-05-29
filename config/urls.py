@@ -24,6 +24,9 @@ urlpatterns = [
     path('pozycje/update/<int:pk>/', views.pozycja_update, name='pozycja_update'),
     path('pozycje/delete/<int:pk>/', views.pozycja_delete, name='pozycja_delete'),
 
-    path('jpk/generuj/', views.jpk_select_period, name='jpk_select_period'),
-    path('jpk/generuj/xml/', views.generate_jpk, name='generate_jpk'),
+    # JPK_VAT URLs
+    path('jpk-vat/select-period/', views.jpk_vat_select_period, name='jpk_vat_select_period'),
+    path('jpk-vat/generate/', views.generate_jpk_vat, name='generate_jpk_vat'),
+    path('jpk-vat/jpk_vat_preview/', views.jpk_vat_preview, name='download_jpk_vat'),
+
 ]

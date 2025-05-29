@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h2>Debug JPK_VAT</h2>
+            <p class="mb-0">Podgląd danych dla generowania JPK_VAT</p>
+        </div>
+        <div class="card-body">
+            <!-- Podstawowe informacje -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Okres rozliczeniowy:</h5>
+                    <p><strong>Od:</strong> {{ start_date }}</p>
+                    <p><strong>Do:</strong> {{ end_date }}</p>
+                    <p><strong>Typ:</strong> {{ period_type }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Statystyki:</h5>
+                    <p><strong>Liczba faktur:</strong> {{ faktury_count }}</p>
+                    <p><strong>Sprzedaż:</strong> {{ jpk_data.sprzedaz_wiersze|length }}</p>
+                    <p><strong>Zakupy:</strong> {{ jpk_data.zakup_wiersze|length }}</p>
+                </div>
+            </div>
+
+            <!-- Dane firmy -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Dane firmy</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nazwa:</strong> {{ jpk_data.company.klient_nazwa }}</p>
+                    <p><strong>NIP:</strong> {{ jpk_data.company.klient_nip }}</p>
+                    <p><strong>Adres:</strong> {{ jpk_data.company.klient_adres }}</p>
+                </div>
+            </div>
+
+            <!-- Podsumowanie VAT -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Podsumowanie VAT</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>VAT należny:</h6>
+                            <p class="h4 text-success">{{ jpk_data.vat_summary.vat_nalezny }} zł</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>VAT naliczony:</h6>
+                            <p class="h4 text-warning">{{ jpk_data.vat_summary.vat_naliczony }} zł</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>VAT do zapłaty:</h6>
+                            <p class="h4 {% if jpk_data.vat_summary.vat_do_zaplaty >= 0 %}text-danger{% else %}text-info{% endif %}">
+                                {{ jpk_data.vat_summary.vat_do_zaplaty }} zł
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sprzedaż -->
+            {% if jpk_data.sprzedaz_wiersze %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Faktury sprzedaży ({{ jpk_data.sprzedaz_wiersze|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Lp</th>
+                                    <th>Numer faktury</th>
+                                    <th>Data wystawienia</th>
+                                    <th>Nabywca</th>
+                                    <th>Netto</th>
+                                    <th>VAT</th>
+                                    <th>Brutto</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for wiersz in jpk_data.sprzedaz_wiersze %}
+                                    <tr>
+                                        <td>{{ wiersz.lp }}</td>
+                                        <td>{{ wiersz.dowod_sprzedazy }}</td>
+                                        <td>{{ wiersz.data_wystawienia }}</td>
+                                        <td>{{ wiersz.nazwa_nabywcy|truncatechars:30 }}</td>
+                                        <td>{{ wiersz.kwota_netto }}</td>
+                                        <td>{{ wiersz.kwota_vat }}</td>
+                                        <td>{{ wiersz.kwota_brutto }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Zakupy -->
+            {% if jpk_data.zakup_wiersze %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Faktury zakupów ({{ jpk_data.zakup_wiersze|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Lp</th>
+                                    <th>Numer faktury</th>
+                                    <th>Data zakupu</th>
+                                    <th>Dostawca</th>
+                                    <th>Netto</th>
+                                    <th>VAT</th>
+                                    <th>Brutto</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for wiersz in jpk_data.zakup_wiersze %}
+                                    <tr>
+                                        <td>{{ wiersz.lp }}</td>
+                                        <td>{{ wiersz.dowod_zakupu }}</td>
+                                        <td>{{ wiersz.data_zakupu }}</td>
+                                        <td>{{ wiersz.nazwa_dostawcy|truncatechars:30 }}</td>
+                                        <td>{{ wiersz.kwota_netto }}</td>
+                                        <td>{{ wiersz.kwota_vat }}</td>
+                                        <td>{{ wiersz.kwota_brutto }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Szczegółowe podsumowanie VAT według stawek -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Podsumowanie według stawek VAT</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Sprzedaż</h6>
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Stawka</th>
+                                    <th>Netto</th>
+                                    <th>VAT</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for stawka, values in jpk_data.vat_summary.sprzedaz.items %}
+                                    {% if values.netto > 0 or values.vat > 0 %}
+                                        <tr>
+                                            <td>{{ stawka }}%</td>
+                                            <td>{{ values.netto }}</td>
+                                            <td>{{ values.vat }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Zakupy</h6>
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Stawka</th>
+                                    <th>Netto</th>
+                                    <th>VAT</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for stawka, values in jpk_data.vat_summary.zakup.items %}
+                                    {% if values.netto > 0 or values.vat > 0 %}
+                                        <tr>
+                                            <td>{{ stawka }}%</td>
+                                            <td>{{ values.netto }}</td>
+                                            <td>{{ values.vat }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Akcje -->
+            <div class="mt-4">
+                <a href="{% url 'generate_jpk_vat' %}?start={{ start_date }}&end={{ end_date }}&type={{ period_type }}"
+                   class="btn btn-success">
+                    <i class="fas fa-download"></i> Pobierz JPK_VAT XML
+                </a>
+                <a href="{% url 'jpk_vat_select_period' %}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-arrow-left"></i> Wybierz inny okres
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary ml-2">
+                    <i class="fas fa-home"></i> Strona główna
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
